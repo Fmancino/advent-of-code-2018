@@ -2,18 +2,24 @@ import Data.Time
 import Data.List.Split
 import qualified Data.Map.Strict as Map
 
+-- Needs sorted imput, can easily be sorted usinf "sort" on unix systems.
 main = do
     input <- getContents
     let parsedIn = parseInput [] (lines  input) (-1)
-        minuteMap = createMinuteMap Map.empty parsedIn
-        sleepingGuard = fst $ getMostSleep (-1, -1) $ Map.toList $ minuteMap
-        sleepingMinute = fst $ getMostCommonMinute (-1,-1) (Map.findWithDefault [-1] sleepingGuard minuteMap)
+        minuteMap = createMinuteMap parsedIn
+        sleepingGuard = fst $ getMostSleep $ Map.toList $ minuteMap
+        sleepingMinute = fst $ getMostCommonMinute (Map.findWithDefault [-1] sleepingGuard minuteMap)
+        guardWithMostSleptMinute = getGuardAndMostSleptMinute $ map listMostCommonMinute $ Map.toList $ minuteMap
     putStrLn "Guard:"
     putStrLn $ show $ sleepingGuard
     putStrLn "Minute:"
     putStrLn $ show $ sleepingMinute
-    putStrLn "Mult:"
+    putStrLn "Multiplication (solution for first star):"
     putStrLn $ show $ sleepingGuard * sleepingMinute
+    putStrLn "Guard and most slept minute and times this minute was aslept:"
+    putStrLn $ show $ guardWithMostSleptMinute
+    putStrLn "Multiplication (solution for second star):"
+    putStrLn $ show $ (fst guardWithMostSleptMinute) * (fst $ snd guardWithMostSleptMinute)
 
 
 data SleepLog = SleepLog { sleep :: Maybe UTCTime, awake :: Maybe UTCTime, idGuard :: Int } deriving (Show)
@@ -30,25 +36,37 @@ addToMinuteMap a s = case a Map.!? (idGuard s) of
                             Nothing -> Map.insert (idGuard s) (getMinutes s) a
                             Just x -> Map.adjust ((getMinutes s) ++) (idGuard s) a
 
-createMinuteMap :: Map.Map Int [Int] -> [SleepLog] -> Map.Map Int [Int]
-createMinuteMap a [] = a
-createMinuteMap a b = createMinuteMap (addToMinuteMap a (head b)) (tail b)
+createMinuteMap :: [SleepLog] -> Map.Map Int [Int]
+createMinuteMap a = foldl (\acc x -> addToMinuteMap acc x) Map.empty a
 
 --                id   max
-getMostSleep :: (Int, Int) -> [(Int, [Int])] -> (Int, Int)
-getMostSleep a [] = a
-getMostSleep a b = let nrMinutes = length $ snd $ head $ b
-                   in if nrMinutes > snd a
-                      then getMostSleep (fst $ head b, nrMinutes) (tail b)
-                      else getMostSleep a (tail b)
+getMostSleep :: [(Int, [Int])] -> (Int, Int)
+getMostSleep a = foldl (\(idGuard, minutesAsleep) (idX, listMinX) ->
+                   if length listMinX > minutesAsleep
+                      then (idX, length listMinX)
+                      else (idGuard, minutesAsleep))
+                          (-1,-1)
+                          a
 
---                     minute size
-getMostCommonMinute :: (Int, Int) -> [Int] -> (Int, Int)
-getMostCommonMinute a [] = a
-getMostCommonMinute (mi, s) i = if length (filter (==head i) i) > s
-                                then getMostCommonMinute (head i, length $ filter (==head i) i) (filter (/=head i) i)
-                                else getMostCommonMinute (mi,s) (filter (/=head i) i)
+--                     minutes -> (mostCommonMinute, sizeofMostCommonMinute)
+getMostCommonMinute :: [Int] -> (Int, Int)
+getMostCommonMinute i = foldl (\(mi,s) x ->  if length (filter (==x) i) > s
+                                             then (x, length $ filter (==x) i)
+                                             else (mi,s))
+                              (0,0)
+                              i
 
+listMostCommonMinute :: (Int, [Int]) -> (Int, (Int, Int))
+listMostCommonMinute (idGuard, minutes) = (idGuard, getMostCommonMinute minutes)
+
+--                             [(id,  (minute,size))] -> id , 
+getGuardAndMostSleptMinute :: [(Int, (Int, Int))] -> (Int, (Int, Int))
+getGuardAndMostSleptMinute i = foldl (\(idAcc, (miAcc,sAcc)) (idX, (miX,sX)) -> 
+                                      if sX > sAcc
+                                          then (idX, (miX,sX))
+                                          else (idAcc, (miAcc,sAcc)))
+                                     (0,(0,0))
+                                     i
 
 
 
