@@ -2,9 +2,11 @@ import Data.Char
 
 main = do
     input <- getContents
-    putStrLn $ show $ length (traverseRmDuplicate input) - 1 -- -1 because \n is in input
-    putStrLn $ show $ (findShortest input) - 1 -- -1 because \n is in input
-
+    let inputN = filter (/='\n') input  -- remove automatically added newline
+    putStrLn $ "First star:"
+    putStrLn $ show $ length (traverseRmDuplicate inputN)
+    putStrLn $ "Second star:"
+    putStrLn $ show $ (findShortest inputN)
 
 invertCase :: Char -> Char
 invertCase a
