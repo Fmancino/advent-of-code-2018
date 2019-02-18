@@ -2,8 +2,8 @@ import Data.Char
 
 main = do
     input <- getContents
-    putStrLn $ show $ length (traverseRmDuplicate input) - 1
-    putStrLn $ show $ (findShortest input) - 1
+    putStrLn $ show $ length (traverseRmDuplicate input) - 1 -- -1 because \n is in input
+    putStrLn $ show $ (findShortest input) - 1 -- -1 because \n is in input
 
 
 invertCase :: Char -> Char
