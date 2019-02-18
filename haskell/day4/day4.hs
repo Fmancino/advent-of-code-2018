@@ -2,21 +2,21 @@ import Data.Time
 import Data.List.Split
 import qualified Data.Map.Strict as Map
 
--- Needs sorted imput, can easily be sorted usinf "sort" on unix systems.
+-- Needs sorted imput, can easily be sorted using "sort" on unix systems.
 main = do
     input <- getContents
     let parsedIn = parseInput [] (lines  input) (-1)
         minuteMap = createMinuteMap parsedIn
         sleepingGuard = fst $ getMostSleep $ Map.toList $ minuteMap
         sleepingMinute = fst $ getMostCommonMinute (Map.findWithDefault [-1] sleepingGuard minuteMap)
-        guardWithMostSleptMinute = getGuardAndMostSleptMinute $ map listMostCommonMinute $ Map.toList $ minuteMap
+        guardWithMostSleptMinute = getGuardAndMostSleptMinute $ map convertMostCommonMinute $ Map.toList $ minuteMap
     putStrLn "Guard:"
     putStrLn $ show $ sleepingGuard
     putStrLn "Minute:"
     putStrLn $ show $ sleepingMinute
     putStrLn "Multiplication (solution for first star):"
     putStrLn $ show $ sleepingGuard * sleepingMinute
-    putStrLn "Guard and most slept minute and times this minute was aslept:"
+    putStrLn "Guard and most slept minute and times this minute was slept:"
     putStrLn $ show $ guardWithMostSleptMinute
     putStrLn "Multiplication (solution for second star):"
     putStrLn $ show $ (fst guardWithMostSleptMinute) * (fst $ snd guardWithMostSleptMinute)
@@ -56,8 +56,8 @@ getMostCommonMinute i = foldl (\(mi,s) x ->  if length (filter (==x) i) > s
                               (0,0)
                               i
 
-listMostCommonMinute :: (Int, [Int]) -> (Int, (Int, Int))
-listMostCommonMinute (idGuard, minutes) = (idGuard, getMostCommonMinute minutes)
+convertMostCommonMinute :: (Int, [Int]) -> (Int, (Int, Int))
+convertMostCommonMinute (idGuard, minutes) = (idGuard, getMostCommonMinute minutes)
 
 --                             [(id,  (minute,size))] -> id , 
 getGuardAndMostSleptMinute :: [(Int, (Int, Int))] -> (Int, (Int, Int))
@@ -67,8 +67,6 @@ getGuardAndMostSleptMinute i = foldl (\(idAcc, (miAcc,sAcc)) (idX, (miX,sX)) ->
                                           else (idAcc, (miAcc,sAcc)))
                                      (0,(0,0))
                                      i
-
-
 
 parseInput :: [SleepLog] -> [String] -> Int -> [SleepLog]
 parseInput log l id
@@ -90,6 +88,3 @@ isHeader i = case head $ tail ( splitOn "] " i) of ('G':'u':'a':_) -> True
 
 isSleep :: String -> Bool
 isSleep i = if head (tail ( splitOn "] " i)) == "falls asleep" then True else False
-
-
-
