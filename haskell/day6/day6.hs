@@ -6,26 +6,13 @@ main = do
     input <- getContents
     let parsedIn = map parsePoint $ lines input
         areaDelim = getAreaDelim parsedIn
-        !area = getArea' areaDelim
+        area = getArea' areaDelim
         listOfClosestPoints = removeNothingPoints $ zip area $ map (getClosestPoint parsedIn) $ area
-        listOfClosestPointsNoNot =  zip (getArea parsedIn) $ map (getClosestPoint parsedIn) $ getArea parsedIn
         perim = getPerimeter areaDelim listOfClosestPoints
         infinitePoints = getPoints perim
         nonInfiniteArea = filter (\x -> notElem (snd x) infinitePoints) listOfClosestPoints
         mostCommonFiniteArea = getMostCommonElementAndSize $ snd $ unzip nonInfiniteArea
-    putStrLn "-----------------------------"
-    putStrLn $ show $ listOfClosestPointsNoNot
-    putStrLn "-----------------------------"
-    putStrLn $ show $ areaDelim
-    putStrLn "-----------------------------"
-    putStrLn $ show $ length listOfClosestPoints
-    putStrLn "Area l-----------------------------"
-    putStrLn $ show $ length area
-    -- putStrLn "Perim-----------------------------"
-    -- putStrLn $ show $ last perim
-    -- putStrLn "Infinite-----------------------------"
-    -- putStrLn $ show $ infinitePoints
-    putStrLn "-----------------------------"
+    putStrLn "Most common area: (first star)"
     putStrLn $ show $ mostCommonFiniteArea
 
 data Point = Point {xcoord :: Int, ycoord :: Int} deriving (Show, Eq, Ord)
@@ -37,7 +24,7 @@ getAreaDelim a = AreaDelim (Point (minX a) (minY a)) (Point (maxX a) (maxY a))
 removeNothingPoints :: [(Point, Maybe Point)] -> [(Point, Point)]
 removeNothingPoints a = foldr f [] a
        where f (_,Nothing) acc = acc
-             f (a, Just x) acc = (acc ++ [(a,x)])
+             f (a, Just x) acc = ([(a,x)] ++ acc)
 
 
 getPerimeter :: AreaDelim -> [(Point, Point)] -> [(Point, Point)]
@@ -58,21 +45,10 @@ getMostCommonElementImpl acc i = if sizeH > snd acc
                         where h = head i
                               sizeH = length $ filter (==h) i
 
-
-
 getPoints :: [(Point, Point)] -> [Point]
 getPoints a = foldr f [] p
        where p = snd (unzip a)
              f x acc = if elem x acc then acc else (acc ++ [x])
-
--- elem' :: Maybe Point -> [Point] -> Bool
--- elem' Nothing _ = False
--- elem' Just x p = elem x p
-
--- unzip' xs = foldr f x xs
-  -- where
-    -- f (a,b) (as,bs) = (a:as, b:bs)
-    -- x               = ([],   [])
 
 parsePoint :: String -> Point
 parsePoint i = let splInp = splitOn ", " i
@@ -106,11 +82,11 @@ getClosestPoint pnts p = let !pntDist = zip pnts (map (distance p) pnts)
 
 getClosestPoint' :: [(Point, Int)] -> [(Point, Int)] -> Maybe Point
 getClosestPoint' (acc:accs) [] = if accs == [] then Just (fst acc) else Nothing
-getClosestPoint' (acc:accs) (x:xs) = getClosestPoint' ((leastOrBoth acc x) ++ accs) xs
+getClosestPoint' acc (x:xs) = getClosestPoint' (leastOrBoth acc x) xs
 
-leastOrBoth :: (Point, Int) -> (Point, Int) -> [(Point, Int)]
-leastOrBoth a b
-                   | snd a == snd b = [a] ++ [b]
-                   | snd a < snd b = [a]
+leastOrBoth :: [(Point, Int)] -> (Point, Int) -> [(Point, Int)]
+leastOrBoth (a:as) b
+                   | snd a == snd b = (a:as) ++ [b]
+                   | snd a < snd b = (a:as)
                    | snd a > snd b = [b]
 
