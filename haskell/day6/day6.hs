@@ -28,7 +28,7 @@ getAreaDelim a = AreaDelim (Point (minX a) (minY a)) (Point (maxX a) (maxY a))
 removeNothingPoints :: [(Point, Maybe Point)] -> [(Point, Point)]
 removeNothingPoints a = foldr f [] a
        where f (_,Nothing) acc = acc
-             f (a, Just x) acc = [(a,x)] ++ acc
+             f (a, Just x) acc = (a,x) : acc
 
 
 getPerimeter :: AreaDelim -> [(Point, Point)] -> [(Point, Point)]
@@ -52,7 +52,7 @@ getMostCommonElementImpl acc i = if sizeH > snd acc
 getPoints :: [(Point, Point)] -> [Point]
 getPoints a = foldr f [] p
        where p = snd (unzip a)
-             f x acc = if elem x acc then acc else ([x] ++ acc)
+             f x acc = if elem x acc then acc else x : acc
 
 parsePoint :: String -> Point
 parsePoint i = let splInp = splitOn ", " i
