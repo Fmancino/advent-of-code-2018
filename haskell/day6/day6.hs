@@ -28,7 +28,7 @@ getAreaDelim a = AreaDelim (Point (minX a) (minY a)) (Point (maxX a) (maxY a))
 removeNothingPoints :: [(Point, Maybe Point)] -> [(Point, Point)]
 removeNothingPoints a = foldr f [] a
        where f (_,Nothing) acc = acc
-             f (a, Just x) acc = ([(a,x)] ++ acc)
+             f (a, Just x) acc = [(a,x)] ++ acc
 
 
 getPerimeter :: AreaDelim -> [(Point, Point)] -> [(Point, Point)]
@@ -52,7 +52,7 @@ getMostCommonElementImpl acc i = if sizeH > snd acc
 getPoints :: [(Point, Point)] -> [Point]
 getPoints a = foldr f [] p
        where p = snd (unzip a)
-             f x acc = if elem x acc then acc else (acc ++ [x])
+             f x acc = if elem x acc then acc else ([x] ++ acc)
 
 parsePoint :: String -> Point
 parsePoint i = let splInp = splitOn ", " i
@@ -85,7 +85,7 @@ getTotalDistance pnts p = sum (map (distance p) pnts)
 
 getClosestPoint :: [Point] -> Point -> Maybe Point
 getClosestPoint pnts p = let !pntDist = zip pnts (map (distance p) pnts)
-                         in getClosestPoint' [(Point 0 0, maxBound :: Int)] pntDist
+                         in getClosestPoint' [] pntDist
 
 getClosestPoint' :: [(Point, Int)] -> [(Point, Int)] -> Maybe Point
 getClosestPoint' (acc:accs) [] = if accs == [] then Just (fst acc) else Nothing
@@ -96,3 +96,4 @@ leastOrBoth (a:as) b
                    | snd a == snd b = (a:as) ++ [b]
                    | snd a < snd b = (a:as)
                    | snd a > snd b = [b]
+leastOrBoth [] b = [b]
