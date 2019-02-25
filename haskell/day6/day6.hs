@@ -12,8 +12,12 @@ main = do
         infinitePoints = getPoints perim
         nonInfiniteArea = filter (\x -> notElem (snd x) infinitePoints) listOfClosestPoints
         mostCommonFiniteArea = getMostCommonElementAndSize $ snd $ unzip nonInfiniteArea
+        listWithTotalDistance = map (getTotalDistance parsedIn) area
+        totalDistanceUnder1000 = length $ filter (< 10000) listWithTotalDistance
     putStrLn "Most common area: (first star)"
     putStrLn $ show $ mostCommonFiniteArea
+    putStrLn "Less 1000: (second star)"
+    putStrLn $ show $ totalDistanceUnder1000
 
 data Point = Point {xcoord :: Int, ycoord :: Int} deriving (Show, Eq, Ord)
 data AreaDelim = AreaDelim {minP :: Point, maxP :: Point} deriving (Show)
@@ -76,6 +80,9 @@ minX i = foldl' (\acc x -> if xcoord x < acc then xcoord x else acc) maxBound i
 distance :: Point -> Point -> Int
 distance a b = (abs ((xcoord a) - (xcoord b))) + (abs ((ycoord a) - (ycoord b)))
 
+getTotalDistance :: [Point] -> Point -> Int
+getTotalDistance pnts p = sum (map (distance p) pnts)
+
 getClosestPoint :: [Point] -> Point -> Maybe Point
 getClosestPoint pnts p = let !pntDist = zip pnts (map (distance p) pnts)
                          in getClosestPoint' [(Point 0 0, maxBound :: Int)] pntDist
@@ -89,4 +96,3 @@ leastOrBoth (a:as) b
                    | snd a == snd b = (a:as) ++ [b]
                    | snd a < snd b = (a:as)
                    | snd a > snd b = [b]
-
