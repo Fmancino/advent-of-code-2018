@@ -27,13 +27,13 @@ getAreaDelim a = AreaDelim (Point (minX a) (minY a)) (Point (maxX a) (maxY a))
 
 removeNothingPoints :: [(Point, Maybe Point)] -> [(Point, Point)]
 removeNothingPoints a = foldr f [] a
-       where f (_,Nothing) acc = acc
-             f (a, Just x) acc = (a,x) : acc
+    where f (_,Nothing) acc = acc
+          f (a, Just x) acc = (a,x) : acc
 
 
 getPerimeter :: AreaDelim -> [(Point, Point)] -> [(Point, Point)]
 getPerimeter (AreaDelim (Point minPx minPy) (Point maxPx maxPy)) a =
-         filter (\x -> xcoord (fst x) == minPx
+    filter (\x -> xcoord (fst x) == minPx
                        || xcoord (fst x) == maxPx
                        || ycoord (fst x) == minPy
                        || ycoord (fst x) == maxPy) a
@@ -44,15 +44,15 @@ getMostCommonElementAndSize x = getMostCommonElementImpl (head x, 0) x
 getMostCommonElementImpl :: Ord a => (a, Int) -> [a] -> (a, Int)
 getMostCommonElementImpl acc [] = acc
 getMostCommonElementImpl acc i = if sizeH > snd acc
-                            then getMostCommonElementImpl (h, sizeH) (filter (/=h) i)
+                                    then getMostCommonElementImpl (h, sizeH) (filter (/=h) i)
                             else getMostCommonElementImpl acc (filter (/=h) i)
-                        where h = head i
-                              sizeH = length $ filter (==h) i
+                                where h = head i
+                                      sizeH = length $ filter (==h) i
 
 getPoints :: [(Point, Point)] -> [Point]
 getPoints a = foldr f [] p
-       where p = snd (unzip a)
-             f x acc = if elem x acc then acc else x : acc
+    where p = snd (unzip a)
+          f x acc = if elem x acc then acc else x : acc
 
 parsePoint :: String -> Point
 parsePoint i = let splInp = splitOn ", " i
@@ -93,7 +93,7 @@ getClosestPoint' acc (x:xs) = getClosestPoint' (leastOrBoth acc x) xs
 
 leastOrBoth :: [(Point, Int)] -> (Point, Int) -> [(Point, Int)]
 leastOrBoth (a:as) b
-                   | snd a == snd b = (a:as) ++ [b]
-                   | snd a < snd b = (a:as)
-                   | snd a > snd b = [b]
+  | snd a == snd b = (a:as) ++ [b]
+  | snd a < snd b = (a:as)
+  | snd a > snd b = [b]
 leastOrBoth [] b = [b]
