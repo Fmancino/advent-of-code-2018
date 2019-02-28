@@ -1,17 +1,23 @@
 import Data.List.Split
+import Data.List
+import Data.Char
 import qualified Data.Map.Strict as Map
 
 main = do
     input <- getContents
     let parsedIn = map parseLine $ lines input
         graph = foldr (\ x acc -> insertInGraph x acc) Map.empty parsedIn
-        deptMap = Map.mapWithKey (\key x -> getDept graph key) graph
     putStrLn "All steps (first star)"
-    putStrLn $ show $ getAllSteps graph
+    putStrLn $ getAllSteps graph
+    putStrLn "Time (first star)"
+    -- putStrLn . show . workUntilAllTasksAreDone $ WorkPackage graph [] 0
+    putStrLn $ show $ startWorkAndGiveTime graph
 
 data Pair = Pair {parent :: Char, child :: Char} deriving (Show, Eq, Ord)
 data PairList = PairList {parentList :: [Char], childList :: [Char]} deriving (Show, Eq, Ord)
+data WorkPackage = WorkPackage {todo :: MyGraph,inProgress :: [WorkNode], timeSpent :: Int} deriving (Show, Eq)
 type Node = (Char, PairList)
+type WorkNode = (Char, Int) -- contains the node and the amount of work executed on it
 type MyGraph = Map.Map Char PairList
 
 addParent :: Char -> PairList -> PairList
@@ -56,11 +62,27 @@ getAllSteps' g s = if (g == Map.empty) then reverse s else getAllSteps' (removeF
     where
         f = getFirstStep g
 
--- not used but was fun to write
-getDept :: MyGraph -> Char -> Int
-getDept g 'a' = maxBound -- non existing node
-getDept g k = 1 + minOrZero (map (getDept g) p)
+getTimeForStep :: Char -> Int
+getTimeForStep s = (ord s) - (ord 'A') + 61
+
+startWorkAndGiveTime :: MyGraph -> Int
+startWorkAndGiveTime g = timeSpent $ workUntilAllTasksAreDone $ WorkPackage g [] 0
+
+
+workUntilAllTasksAreDone :: WorkPackage -> WorkPackage
+workUntilAllTasksAreDone wp = if (todo wp == Map.empty)
+                                 then wp
+                                 else workUntilAllTasksAreDone $! workUntilOneTaskIsDone wp
+
+workUntilOneTaskIsDone :: WorkPackage -> WorkPackage
+workUntilOneTaskIsDone (WorkPackage g w t) = WorkPackage (removeFromGraph itemDone g) workLeft (t + time)
     where
-        p = parentList (Map.findWithDefault (PairList ['a'] []) k g)
-        minOrZero [] = 0
-        minOrZero l = minimum l
+        updatedTasks = Map.keys $ Map.filter (\l -> parentList l == "") g :: [Char]
+        insertIfnew :: Char -> [WorkNode] -> [WorkNode]
+        insertIfnew k acc = if elem k (fst $ unzip acc) then acc else (k, getTimeForStep k):acc
+        updatedWork = sortBy (\a b -> compare (snd a) (snd b)) $ foldr insertIfnew w updatedTasks :: [WorkNode]
+        time = snd $ head updatedWork
+        itemDone = fst $ head updatedWork
+        workTodo = take 5 updatedWork
+        workNotDone = drop 5 updatedWork
+        workLeft = (filter (\ (x,y) -> y /= 0) $ map (\ (x,y) -> (x,y-time)) $ workTodo) ++ workNotDone
