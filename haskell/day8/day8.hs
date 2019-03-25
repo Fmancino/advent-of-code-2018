@@ -9,8 +9,9 @@ main = do
     input <- getContents
     let inputN = filter (/='\n') input  -- remove automatically added newline
         inputInt = map read $ splitOn " " inputN :: [Int]
-    putStrLn $ show inputInt
+    putStrLn $ "First star:"
     putStrLn $ show $ sumMeta inputInt
+    putStrLn $ "Second star:"
     putStrLn $ show $ sumPartTwo inputInt
 
 --      number of     child , metadata
@@ -25,11 +26,11 @@ sumMeta a = sumMeta' a [] 0
 
 sumMeta' :: [Int] -> [ChildsAndMeta] -> Int -> Int
 sumMeta' [] [] c = c
-sumMeta' a ((0,meta):b) c =trace (show c) $ trace (show meta) $ trace (show (removeChild b)) $ sumMeta' (drop meta a) (removeChild b) strictSum
+sumMeta' a ((0,meta):b) c = sumMeta' (drop meta a) (removeChild b) strictSum
     where !strictSum = (sum $ take meta a) + c
 sumMeta' (childs:meta:a) b c = if childs > 0
-                                  then trace (show (childs,meta)) $ sumMeta' a ((childs,meta):b) c
-                                  else trace (show (childs,meta)) $ sumMeta' (drop meta a) (removeChild b) strictSum
+                                  then sumMeta' a ((childs,meta):b) c
+                                  else sumMeta' (drop meta a) (removeChild b) strictSum
     where !strictSum = (sum $ take meta a) + c
 
 removeChild :: [ChildsAndMeta] -> [ChildsAndMeta]
@@ -44,15 +45,13 @@ sumPartTwo' a [(values, (0, meta))] = metaSum (reverse values) $ take meta a
 sumPartTwo' a ((values, (0, meta)):b) = sumPartTwo' (drop meta a) $
     removeChildTwo b (sumPartTwo' (take meta a) [(values, (0, meta))])
 sumPartTwo' (childs:meta:a) b = if childs > 0
-                                then trace (show (childs,meta)) $
-                                    sumPartTwo' a (([],(childs,meta)):b)
-                                else trace (show (childs,meta)) $
-                                    sumPartTwo' (drop meta a) $
+                                then sumPartTwo' a (([],(childs,meta)):b)
+                                else sumPartTwo' (drop meta a) $
                                         removeChildTwo (b) (sum $ take meta a)
 
 removeChildTwo :: [ChildValuesAndMeta] -> Int -> [ChildValuesAndMeta]
-removeChildTwo [] _ = trace "hello" $ []
-removeChildTwo ((values, (child,meta)):b) x = trace (show ((values, (child,meta)):b)) $ (x:values, ((child-1),meta)):b
+removeChildTwo [] _ = trace "Should not happen" $ []
+removeChildTwo ((values, (child,meta)):b) x = (x:values, ((child-1),meta)):b
 
 metaSum :: ChildValues -> MetaValues -> Int
 metaSum childs metas = foldl' (\acc x -> acc + valueOrZero childs x) 0 metas
