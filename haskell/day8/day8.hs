@@ -11,8 +11,13 @@ main = do
         inputInt = map read $ splitOn " " inputN :: [Int]
     putStrLn $ show inputInt
     putStrLn $ show $ sumMeta inputInt
+    putStrLn $ show $ sumPartTwo inputInt
 
+--      number of     child , metadata
 type ChildsAndMeta = (Int, Int)
+type ChildValues = [Int]
+type MetaValues = [Int]
+type ChildValuesAndMeta = (ChildValues, ChildsAndMeta)
 
 sumMeta :: [Int] -> Int
 sumMeta a = sumMeta' a [] 0
@@ -30,3 +35,27 @@ sumMeta' (childs:meta:a) b c = if childs > 0
 removeChild :: [ChildsAndMeta] -> [ChildsAndMeta]
 removeChild [] = []
 removeChild ((child,meta):as) = ((child-1),meta):as
+
+sumPartTwo :: [Int] -> Int
+sumPartTwo a = sumPartTwo' a []
+
+sumPartTwo' :: [Int] -> [ChildValuesAndMeta] -> Int
+sumPartTwo' a [(values, (0, meta))] = metaSum (reverse values) $ take meta a
+sumPartTwo' a ((values, (0, meta)):b) = sumPartTwo' (drop meta a) $
+    removeChildTwo b (sumPartTwo' (take meta a) [(values, (0, meta))])
+sumPartTwo' (childs:meta:a) b = if childs > 0
+                                then trace (show (childs,meta)) $
+                                    sumPartTwo' a (([],(childs,meta)):b)
+                                else trace (show (childs,meta)) $
+                                    sumPartTwo' (drop meta a) $
+                                        removeChildTwo (b) (sum $ take meta a)
+
+removeChildTwo :: [ChildValuesAndMeta] -> Int -> [ChildValuesAndMeta]
+removeChildTwo [] _ = trace "hello" $ []
+removeChildTwo ((values, (child,meta)):b) x = trace (show ((values, (child,meta)):b)) $ (x:values, ((child-1),meta)):b
+
+metaSum :: ChildValues -> MetaValues -> Int
+metaSum childs metas = foldl' (\acc x -> acc + valueOrZero childs x) 0 metas
+
+valueOrZero :: [Int] -> Int -> Int
+valueOrZero x index = if index > length x then 0 else x !! (index - 1)
